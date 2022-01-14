@@ -15,6 +15,10 @@ Typical usage options:
 
 ## Modules
 
+### `argparse_ext`
+
+Argparse extensions.
+
 ### `conf`
 
 Configuration data storage
