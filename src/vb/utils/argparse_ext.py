@@ -73,3 +73,26 @@ class StoreTrueCondAction(argparse._StoreTrueAction):
             return super().__call__(parser, namespace, values, option_string)
         except NotImplementedError:
             pass
+
+
+def add_common_arguments(
+        parser: argparse.ArgumentParser, version: str | None = None,
+        verbose: bool = True) -> None:
+    """Add common CLI arguments.
+
+    Added arguments: `-V`, `--version`, `-v`, `--verbose`.
+
+    Args:
+        parser: Argument parser to add arguments to
+        version: Program version string - must be set to add
+            `-V` and `--version`.
+        verbose: Add verbose argument
+    """
+    if verbose:
+        parser.add_argument(
+            '-v', '--verbose', action='count', default=0,
+            help='increase output verbosity, can be repeated')
+    if version:
+        parser.add_argument(
+            '-V', '--version', action='version',
+            version='%(prog)s ' + version)
