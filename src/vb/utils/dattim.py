@@ -28,6 +28,8 @@ def timezone_from_name(name: str) -> tzinfo | None:
         # alternative: None
         return datetime.now(timezone.utc).astimezone().tzinfo
     else:
+        # For other timezones than UTC and local we need to import module
+        # zoneinfo which is in the standard library since Python 3.10.
         try:
             import zoneinfo                 # type: ignore # optional import
         except ImportError:
