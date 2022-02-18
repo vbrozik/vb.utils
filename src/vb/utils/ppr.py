@@ -8,7 +8,8 @@ import pprint
 import math
 import sys
 
-from typing import Optional, Sequence, TypeVar, Iterator, TextIO
+from typing import Optional, Sequence, TypeVar, Iterator, TextIO, Type
+from types import TracebackType
 
 
 _T1 = TypeVar('_T1')
@@ -93,8 +94,9 @@ class Spinner:
         return self
 
     def __exit__(
-            self, exc_type: type,
-            exc_val: BaseException, exc_tb: BaseException) -> None:
+                self, __exc_type: Type[BaseException] | None,
+                __exc_value: BaseException | None,
+                __traceback: TracebackType | None) -> None:
         """Exit the context manager."""
         self.cleanup()
 
