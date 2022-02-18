@@ -29,6 +29,11 @@ class Spinner:
     The cleanup method does not destroy the spinner object. You can
     use the update method again to start a new spinner.
 
+    The spinner can be used as a context manager. By default the update method
+    is called when entering the context manager to show the spinner
+    and the cleanup method is called when exiting the context manager
+    to clear it.
+
     Note:
         The spinner works only at the beginning of a line because it uses
         carriage return to move to the beginning of the line and overwrite
@@ -49,15 +54,24 @@ class Spinner:
 
     def __init__(
             self, sequence: str | Sequence[str] | None = None,
-            stream: TextIO = sys.stdout, end_str: str = '\r') -> None:
+            suppress_nontty: bool = True,
+            stream: TextIO = sys.stdout, reset_str: str = '\r',
+            cm_update_enter: bool = True) -> None:
         """Initialize the spinner.
 
         Args:
             sequence: the sequence of characters or strings to cycle
-            end_str: the string to append to the end of every cycle
+                through. If None, the ASCII_LINE1 sequence is used.
+            suppress_nontty: if True, suppress the spinner if the
+                stream is not a tty.
+            stream: the stream to write the spinner to
+            reset_str: the string to append to the end of every cycle
+                It resets the cursor to overwrite the spinner on next update.
+            cm_update_enter: if True, update the spinner when entering
+                as the context manager
 
         Todo:
-            spinners to add:
+            * spinners to add:
             https://github.com/manrajgrover/py-spinners/blob/master/spinners/spinners.py
             https://stackoverflow.com/questions/1923323/console-animations
             https://stackoverflow.com/questions/2685435/cooler-ascii-spinners
@@ -66,23 +80,39 @@ class Spinner:
             sequence = self.ASCII_LINE1
         self.sequence = sequence
         self.spinner_length = max(len(text) for text in sequence)
-        self.end_str = end_str
+        self.suppress = suppress_nontty and not stream.isatty()
         self.stream = stream
+        self.reset_str = reset_str
+        self.cm_update_enter = cm_update_enter
         self.iterator = self.get_iterator()
+
+    def __enter__(self) -> Spinner:
+        """Enter the context manager."""
+        if self.cm_update_enter:
+            self.update()
+        return self
+
+    def __exit__(
+            self, exc_type: type,
+            exc_val: BaseException, exc_tb: BaseException) -> None:
+        """Exit the context manager."""
+        self.cleanup()
 
     def get_iterator(self) -> Iterator[str]:
         """Create an iterator to cycle through the sequence."""
         while True:
             for text in self.sequence:
-                yield text + self.end_str
+                yield text + self.reset_str
 
     def update(self) -> None:
         """Write the next spinner character to the stream."""
-        self.stream.write(next(self.iterator))
+        if not self.suppress:
+            self.stream.write(next(self.iterator))
 
     def cleanup(self) -> None:
         """Cleanup the spinner."""
-        self.stream.write(f'{" " * self.spinner_length}\r')
+        if not self.suppress:
+            self.stream.write(' ' * self.spinner_length + self.reset_str)
 
 
 # --- functions (and module variables):
