@@ -48,13 +48,14 @@ def pivot_view(
         name of the pivot view
 
     Examples:
+        FIXME: This test has to be completed.
         >>> import sqlite3
         >>> conn = sqlite3.connect(':memory:')
-        >>> pivot_table_view(
+        >>> pivot_table = pivot_view(
         ...     conn, 'table_name', 'group_by', 'value_column',
         ...     'pivot_column', 'pivot_value')
-        >>> conn.execute(
-        ...     'select * from pivot_table').fetchall()
+        >>> conn.execute(       # doctest: +SKIP
+        ...     f'select * from {pivot_table}').fetchall()
         [(1, 'a', 1), (1, 'a', 2), (1, 'a', 3), (1, 'b', 1), (1, 'b', 2),
          (1, 'b', 3), (2, 'a', 1), (2, 'a', 2), (2, 'a', 3), (2, 'b', 1),
          (2, 'b', 2), (2, 'b', 3)]
