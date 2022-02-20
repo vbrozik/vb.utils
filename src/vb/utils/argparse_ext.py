@@ -94,5 +94,4 @@ def add_common_arguments(
             help='increase output verbosity, can be repeated')
     if version:
         parser.add_argument(
-            '-V', '--version', action='version',
-            version='%(prog)s ' + version)
+            '-V', '--version', action='version', version=f'%(prog)s {version}')

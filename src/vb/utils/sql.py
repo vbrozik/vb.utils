@@ -60,15 +60,15 @@ def pivot_view(
          (2, 'b', 2), (2, 'b', 3)]
     """
     if not pivot_view_name:
-        pivot_view_name = table_name + '_pivot'
+        pivot_view_name = f'{table_name}_pivot'
     temporary_cmd = 'TEMPORARY' if temporary else ''
-    pivot_col_cmds = []
+    pivot_col_cmds: list[str] = []
     for pivot_value in pivot_values:
-        for pivoted_value_column in pivoted_value_columns:
-            pivot_col_cmds.append(
-                f'''{aggreg_function}("{pivoted_value_column}") '''
-                f'''FILTER (WHERE "{pivot_column}" = {pivot_value}) '''
-                f'''AS {pivoted_value_column}_{pivot_value}''')
+        pivot_col_cmds.extend(
+            f'''{aggreg_function}("{pivoted_value_column}") '''
+            f'''FILTER (WHERE "{pivot_column}" = {pivot_value}) '''
+            f'''AS {pivoted_value_column}_{pivot_value}'''
+            for pivoted_value_column in pivoted_value_columns)
     pivot_col_cmds_txt = '\n            , '.join(pivot_col_cmds)
     command = f'''
         CREATE {temporary_cmd} VIEW IF NOT EXISTS "{pivot_view_name}" AS
@@ -98,7 +98,7 @@ def pivot_moving_view(
         min_aggreg_count: int = 3) -> str:
     """Create a view that pivots a table and calculates moving averages."""
     if not pivot_view_name:
-        pivot_view_name = table_name + '_m_avg'
+        pivot_view_name = f'{table_name}_m_avg'
     temporary_cmd = 'TEMPORARY' if temporary else ''
     pivot_col_cmds = []
     pivot_col_cnt_cmds = []
@@ -166,7 +166,7 @@ def consec_diff_view(
         >>> conn = sqlite3.connect(':memory:')
     """
     if not diff_view_name:
-        diff_view_name = table_name + '_cdiff'
+        diff_view_name = f'{table_name}_cdiff'
     temporary_cmd = 'TEMPORARY' if temporary else ''
     command = f'''
         CREATE {temporary_cmd} VIEW IF NOT EXISTS "{diff_view_name}" AS
