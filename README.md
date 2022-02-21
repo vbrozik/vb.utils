@@ -31,6 +31,10 @@ Container manipulation (list, dict etc.)
 
 Date and time
 
+### `file_compress`
+
+Tools for working with compressed files
+
 ### `itert`
 
 Tools for working with iterables and iterators
