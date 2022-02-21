@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 import sqlite3
+import itertools
+import inspect
 
 from typing import Iterable
 
@@ -240,3 +242,51 @@ def order_by_columns(
             f'{quote}{col}{quote}{" DESC" if rev else ""}'
             for col, rev in itertools.zip_longest(columns, reverse))
 
+
+def query_extreme(
+        table: str,
+        extreme_column: str,
+        extreme_func: str = 'max',
+        order_columns: Iterable[str] = (),
+        reverse: Iterable[bool | None] = (),
+        quote_identifiers: bool = True) -> str:
+    """Generate SQL query to get the extreme value of a column.
+
+    Args:
+        table: name of the table to query
+        extreme_column: name of the column to get the extreme value of
+        extreme_func: function to apply to the extreme column (max, min)
+        order_columns: columns to order by and select
+        reverse: descending direction of the individual columns ordering
+
+    Returns:
+        SQL query as a string
+
+    Examples:
+        >>> print(query_extreme('table', 'column'))
+        SELECT "column"
+        FROM "table"
+        WHERE "column" = (
+            SELECT max("column")
+            FROM "table")
+
+        >>> print(query_extreme('table', 'column', order_columns=('a', 'b')))
+        SELECT "a", "b", "column"
+        FROM "table"
+        WHERE "column" = (
+            SELECT max("column")
+            FROM "table")
+        ORDER BY "a", "b"
+    """
+    quote = '"' if quote_identifiers else ''
+    return inspect.cleandoc(
+            f'''
+            SELECT {', '.join(f'{quote}{col}{quote}' for col
+                    in itertools.chain(order_columns, (extreme_column,)))}
+            FROM {quote}{table}{quote}
+            WHERE {quote}{extreme_column}{quote} = (
+                SELECT {extreme_func}({quote}{extreme_column}{quote})
+                FROM {quote}{table}{quote})
+            {order_by_columns(
+                    order_columns, reverse, quote_columns=quote_identifiers)}
+            ''')
