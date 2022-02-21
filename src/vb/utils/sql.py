@@ -207,3 +207,36 @@ def many_columns_condition(
     quote = '"' if quote_columns else ''
     return f' {bool_op} '.join(
             f'{quote}{col}{quote} {comparison}' for col in columns)
+
+
+def order_by_columns(
+        columns: Iterable[str],
+        reverse: Iterable[bool | None] = (),
+        clause: str = 'ORDER BY',
+        quote_columns: bool = True) -> str:
+    """Generate ORDER BY clause.
+
+    Args:
+        columns: columns to order by
+        reverse: descending direction of the column ordering
+        quote_columns: whether to quote the column names or not
+
+    Returns:
+        values for SQL ORDER BY clause as a string
+
+    Examples:
+        >>> order_by_columns(('a', 'b', 'c'))
+        'ORDER BY "a", "b", "c"'
+
+        >>> order_by_columns(('a', 'b', 'c'), (None, True))
+        'ORDER BY "a", "b" DESC, "c"'
+    """
+    quote = '"' if quote_columns else ''
+    if not columns:
+        return ''
+    if clause:
+        clause += ' '
+    return clause + ', '.join(
+            f'{quote}{col}{quote}{" DESC" if rev else ""}'
+            for col, rev in itertools.zip_longest(columns, reverse))
+
