@@ -245,3 +245,60 @@ def interval_str(
     if print_int_length:
         result = f'{result} ({int_length})'
     return result
+
+
+def class_full_name(obj: object) -> str:
+    """Return the full name of object's class (including module name).
+
+    This function can be used to get full name of an exception class.
+    Like this:
+    try:
+        main_cli_procedure()
+    except BaseException as exception:  # skipcq: PYL-W0703
+        logging.critical('%s: %s', class_full_name(exception), exception)
+
+    Todo: __class__ or __module__ does not always exist.
+        https://stackoverflow.com/questions/2020014/get-fully-qualified-class-name-of-an-object-in-python
+
+    Args:
+        obj: object to get the class name of
+
+    Returns:
+        the full name of the class of the object
+
+    Examples:
+        >>> class_full_name(1.0)
+        'float'
+
+        >>> class_full_name(None)
+        'NoneType'
+
+        >>> class_full_name(True)
+        'bool'
+
+        >>> class_full_name(object())
+        'object'
+
+        >>> class_full_name(list)
+        'type'
+
+        >>> class_full_name(list(range(3)))
+        'list'
+
+        >>> class_full_name(list(range(3)).pop)
+        'builtin_function_or_method'
+
+        >>> class_full_name(list(range(3)).pop.__self__)
+        'list'
+
+        >>> import sqlite3
+        >>> class_full_name(sqlite3.OperationalError())
+        'sqlite3.OperationalError'
+    """
+    BUILTINS = 'builtins'   # FIXME: Pylance bug? str.__class__.__module__
+    class_ = obj.__class__
+    module = class_.__module__
+    name = class_.__qualname__
+    if module and module != BUILTINS:
+        name = f'{module}.{name}'
+    return name
