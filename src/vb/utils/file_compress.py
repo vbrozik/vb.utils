@@ -14,7 +14,7 @@ import errno
 from typing import Type
 from types import TracebackType
 
-import vb.utils.ppr
+from . import ppr
 
 COMPRESSION_SUFFIXES = {
         '.gz': 'gzip',
@@ -48,7 +48,7 @@ class TemporaryDecompressedFile(contextlib.AbstractContextManager):
             self, compressed_path: str,
             compression_type_from_suffix: bool = True,
             pass_unknown_compression_type: bool = True,
-            spinner: vb.utils.ppr.Spinner | None = None,
+            spinner: ppr.Spinner | None = None,
             suffix: str | None = None,
             prefix: str | None = None, dir_=None, text: bool = False):
         """Initialize the decompressed context manager.
@@ -105,6 +105,7 @@ class TemporaryDecompressedFile(contextlib.AbstractContextManager):
             # FIXME: Pylance complains about the first argument:
             # "TextIO" is incompatible with protocol
             # "SupportsRead[AnyStr@copyfileobj]"
+            # Maybe use IO[str] instead of TextIO?
         try:
             os.close(decompressed_fd)
         except OSError as os_err:       # file descriptor is normally closed
