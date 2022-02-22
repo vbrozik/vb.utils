@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import itertools
 
-from typing import Iterable, TypeVar
+from typing import Iterable, Iterator, TypeVar
 
 
 _T1 = TypeVar('_T1')
@@ -42,7 +42,7 @@ def first_last(
     return first, last
 
 
-def list_to_ranges(input_list: Iterable[int]) -> Iterable[tuple[int, int]]:
+def list_to_ranges(input_list: Iterable[int]) -> Iterator[tuple[int, int]]:
     """Return iterable of ranges from iterable of integers.
 
     Every consecutive sequence of integers in input_list
@@ -59,7 +59,7 @@ def list_to_ranges(input_list: Iterable[int]) -> Iterable[tuple[int, int]]:
         input_list: iterable of integers (usually unique and sorted)
 
     Returns:
-        iterable of tuples presenting intervals of consecutive numbers
+        iterator of tuples presenting intervals of consecutive numbers
 
     Examples:
         >>> list(list_to_ranges([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]))
