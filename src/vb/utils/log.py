@@ -54,6 +54,11 @@ def init(verbosity: int = 0, newlinehandler: bool = False) -> None:
                 2:  DEBUG
                 3:  DEBUG2  - all levels
         newlinehandler: if True, use alternate logging StreamHandler
+
+    Todo:
+        * message alignment %(levelname)8s
+        * timestamps %(asctime)s %(msecs)03d datefmt='%Y-%m-%d %H:%M:%S'
+        * allow modern {} formatter
     """
     logging.addLevelName(DEBUG2, 'DEBUG2')
     optargs: dict[str, Any] = {}
