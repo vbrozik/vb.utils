@@ -1,4 +1,9 @@
-"""Provide SQL utilities."""
+"""Provide SQL utilities.
+
+Todo:
+    * Change the view creation functions to return SQL commands instead of
+      directly executing them.
+"""
 
 from __future__ import annotations
 
@@ -6,7 +11,7 @@ import sqlite3
 import itertools
 import inspect
 
-from typing import Iterable
+from typing import Iterable, Sequence
 
 # import pandas as pd
 
@@ -192,6 +197,55 @@ def consec_diff_view(
         '''
     conn.execute(command)
     return diff_view_name
+
+
+def diff_view(
+        table_name: str,
+        diff_columns: Sequence[str],
+        *,
+        order_column: str = '',
+        diff_view_name: str = '',
+        keep_columns: None | Iterable[str] = None,
+        temporary: bool = True,
+        quote_identifiers: bool = True) -> str:
+    """Create a view changing cumulative columns to differences per step.
+
+    Columns diff_columns must be numeric.
+
+    Args:
+        table_name: name of the to create the view for
+        diff_columns: names of the columns to create the differences of
+        order_column: name of the column to order by for diff calculations
+            By default, the first column of diff_columns is used.
+        diff_view_name: name of the view (table_name + _diff suffix by default)
+        keep_columns: names of the columns to keep from the original table
+            By default it is order_column.
+        temporary: if True, the view is created as a temporary view
+        quote_identifiers: whether to quote the identifier names
+
+    Returns:
+        SQL command to create the view
+    """
+    if not diff_view_name:
+        diff_view_name = f'{table_name}_diff'
+    quote = (lambda x: f'"{x}"') if quote_identifiers else lambda x: x
+    order_column = quote(order_column or diff_columns[0])
+    keep_columns = (
+            [quote(col) for col in keep_columns] if keep_columns
+            else [order_column])
+    diffed_columns = (
+        f'{quote(col)} - LAG({quote(col)}) OVER diff_window '
+        f'AS {quote(f"{col}_diff")}'
+        for col in diff_columns)
+    temporary_cmd = 'TEMPORARY' if temporary else ''
+    return f'''
+        CREATE {temporary_cmd} VIEW IF NOT EXISTS {quote(diff_view_name)} AS
+        SELECT
+            {', '.join(keep_columns)},
+            {', '.join(diffed_columns)}
+        FROM "{table_name}"
+        WINDOW diff_window AS (ORDER by {order_column})
+        '''
 
 
 def many_columns_condition(
