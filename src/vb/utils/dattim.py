@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import re
+
 from datetime import datetime, timezone, tzinfo
 
 
@@ -108,3 +110,50 @@ def hms_from_seconds(
         time_parts.append(f'{int(mn):02d}')
     time_parts.append(f'{sec:02.{frac_digits}f}')
     return ':'.join(time_parts)
+
+
+def iso_from_relaxed(iso_like: str) -> str:
+    """Return ISO 8601 converted from a relaxed ISO format.
+
+    The relaxation from ISO 8601 is in the following:
+        * More options for the separators:
+            * The `T` can be replaced by any separator.
+            * The `:` can be replaced by `-`
+
+    Currently unsupported:
+        * String without separators.
+        * Fractional seconds.
+        * Timezones - probably impossible with the `-` separator.
+
+    Args:
+        iso_like: date time string in a format similar to ISO 8601
+
+    Returns:
+        ISO 8601 date time string
+
+    Examples:
+        >>> iso_from_relaxed('2019-09-18T05:13:20')
+        '2019-09-18T05:13:20'
+        >>> iso_from_relaxed('2019-09-18-05-13-20')
+        '2019-09-18T05:13:20'
+        >>> iso_from_relaxed('2019-09-18-05-13')
+        '2019-09-18T05:13'
+        >>> iso_from_relaxed('2019-09-18-05')
+        '2019-09-18T05'
+        >>> iso_from_relaxed('2019-09-18')
+        '2019-09-18'
+    """
+    def replace_separators(match: re.Match) -> str:
+        """Replace separators in a date time string."""
+        result = match['date']
+        if match['time']:
+            time = re.sub('-', ':', match['time'])
+            result = f'{result}T{time}'
+        return result
+    iso_datetime, changes_count = re.subn(
+        r'^(?P<date>\d{4}-\d{2}-\d{2})'
+        r'(?:.(?P<time>\d{2}(?:[:-]\d{2}(?:[:-]\d{2})?)?))?$',
+        replace_separators, iso_like)
+    if changes_count:
+        return iso_datetime
+    raise ValueError(f'Invalid ISO 8601 like format: {iso_like!r}')
