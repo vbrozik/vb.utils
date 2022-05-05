@@ -31,18 +31,26 @@ def pivot_view(
     together and the newly created columns will contain values from the
     original rows.
 
-    Fixme: Fix/add examples.
+    Fixme:
+        * Fix/add examples.
+        * Recreate to return SQL command instead of executing it.
 
     Args:
         conn: connection to the database
         table_name: name of the table to pivot
-        pivot_column: name of the column to pivot by
-        pivot_values: values of the pivot_column to pivot (other are ignored)
-        pivoted_value_columns: columns to be multiplied by pivot
-        group_by_column: column to group by, this column is not pivoted
-            every pivot_value is expected to have a single appearance
-            in the group
-        pivot_table_name: name of the pivot view (_pivot suffix by default)
+        pivot_column: name of the column to pivot by - Its values listed in
+            pivot_values will create columns in the pivoted table.
+        pivot_values: values of the pivot_column to pivot
+            Other values are ignored.
+        pivoted_value_columns: columns to be multiplied by pivot_values
+            Every column in this list will be represented by one column for
+            every value in pivot_values. The created columns are named:
+            `{pivoted_value_column}_{pivot_value}`
+        group_by_column: column to group by
+            This column is not pivoted. Every pivot_value is expected to have
+            a single appearance in the group. This could be for example
+            a timestamp.
+        pivot_view_name: name of the pivot view (_pivot suffix by default)
         temporary: whether the created view should be a temporary one
         aggreg_function: SQL function name to use for aggregation
 
@@ -261,6 +269,9 @@ def query_extreme(
 
     Returns:
         SQL query as a string
+
+    Todo:
+        * Add support for optional WHERE clause
 
     Examples:
         >>> print(query_extreme('table', 'column'))
