@@ -1,5 +1,3 @@
-#!/usr/bin/python3
-
 """Provide logging handling.
 
 Todo:
@@ -41,7 +39,7 @@ class StreamHandler(logging.StreamHandler):
 
 # --- functions:
 
-def init(verbosity: int = 0, newlinehandler: bool = False) -> None:
+def init(verbosity: int = 0, newline_handler: bool = False) -> None:
     """Initialize logging.
 
     Args:
@@ -53,7 +51,7 @@ def init(verbosity: int = 0, newlinehandler: bool = False) -> None:
                 1:  WARNING
                 2:  DEBUG
                 3:  DEBUG2  - all levels
-        newlinehandler: if True, use alternate logging StreamHandler
+        newline_handler: if True, use alternate logging StreamHandler
 
     Todo:
         * message alignment %(levelname)8s
@@ -62,7 +60,7 @@ def init(verbosity: int = 0, newlinehandler: bool = False) -> None:
     """
     logging.addLevelName(DEBUG2, 'DEBUG2')
     optargs: dict[str, Any] = {}
-    if newlinehandler:
+    if newline_handler:
         optargs['handlers'] = (StreamHandler(),)
     logging.basicConfig(format='%(levelname)s: %(message)s', **optargs)
     logging.getLogger().setLevel(30 - 10 * verbosity)
