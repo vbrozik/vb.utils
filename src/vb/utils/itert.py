@@ -5,7 +5,7 @@ from __future__ import annotations
 import itertools
 import re
 
-from typing import Final, Hashable, Iterable, Iterator, TypeVar
+from typing import Final, Hashable, Iterable, Iterator, TypeVar, cast
 
 
 _T1 = TypeVar('_T1')
@@ -141,7 +141,7 @@ def are_items_unique(items: Iterable[Hashable]) -> bool:
     seen = set()
     # The generator expression uses side-effect on the set seen.
     return not any(
-            item in seen or seen.add(item)
+            item in seen or cast(None, seen.add(item))
             for item in items)
 
 
