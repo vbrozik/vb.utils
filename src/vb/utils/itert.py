@@ -3,8 +3,9 @@
 from __future__ import annotations
 
 import itertools
+import re
 
-from typing import Iterable, Iterator, TypeVar
+from typing import Final, Hashable, Iterable, Iterator, TypeVar
 
 
 _T1 = TypeVar('_T1')
@@ -110,3 +111,83 @@ def group_items_by_keys(
             result[key] = []
         result[key].append(item)
     return result
+
+
+def iter_len(iterator: Iterable) -> int:
+    """Get iterable length. Iterators are consumed.
+    
+    Infinite iterators cause infinite loop.
+
+    Examples:
+        >>> iter_len(())
+        0
+
+        >>> iter_len(range(10))
+        10
+    """
+    return sum(1 for _ in iterator)
+
+
+def are_items_unique(items: Iterable[Hashable]) -> bool:
+    """Check if all items of the iterable are unique.
+
+    Examples:
+        >>> are_items_unique('ABC')
+        True
+
+        >>> are_items_unique('ABAC')
+        False
+    """
+    seen = set()
+    # The generator expression uses side-effect on the set seen.
+    return not any(
+            item in seen or seen.add(item)
+            for item in items)
+
+
+IDENTIFIERS_INVALID_CHARS_RE: Final[str] = r'[^a-zA-Z0-9]'
+
+def unique_identifiers(
+        names: Iterable[str], invalid_chars: str = IDENTIFIERS_INVALID_CHARS_RE,
+        replacement_char: str = '_') -> list[str]:
+    """Create list of valid unique identifiers from a list of names.
+
+    Invalid characters are replaced. Repeated identifiers are given a numeric
+    suffix. The returned list contains the identifiers at the same indexes as
+    the input iterable.
+
+    Args:
+        invalid_chars: regex matching invalid characters to be replaced
+        replacement_char: character to be used as replacement
+
+    Examples:
+        >>> unique_identifiers(('hello', 'x1_b2'))
+        ['hello', 'x1_b2']
+
+        >>> unique_identifiers(('hello', 'x1_b2', 'hello', 'hello'))
+        ['hello_1', 'x1_b2', 'hello_2', 'hello_3']
+
+        >>> unique_identifiers(('name@domain', 'name.domain', 'name_domain'))
+        ['name_domain_1', 'name_domain_2', 'name_domain_3']
+
+        >>> unique_identifiers(('name@domain', 'name.domain', 'name_domain_1'))
+        Traceback (most recent call last):
+            ...
+        ValueError: Function does not assure uniqueness with pre-existing numeric suffixes.
+    """
+    identifiers = [re.sub(invalid_chars, replacement_char, name) for name in names]
+    identifier_counters = {
+            identifier: 1 if iter_len(group) > 1 else 0
+            for identifier, group in itertools.groupby(sorted(identifiers))}
+    identifiers_unique = []
+    for identifier in identifiers:
+        suffix = ''
+        if identifier_counters[identifier]:
+            suffix = f'_{identifier_counters[identifier]}'
+            identifier_counters[identifier] += 1
+        identifiers_unique.append(identifier + suffix)
+    # Currently uniqueness is not assured in all cases. We have to check that.
+    if not are_items_unique(identifiers_unique):
+        raise ValueError(
+            'Function does not assure uniqueness with pre-existing numeric suffixes.')
+    return identifiers_unique
