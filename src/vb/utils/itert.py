@@ -135,7 +135,7 @@ def are_items_unique(items: Iterable[Hashable]) -> bool:
         >>> are_items_unique('ABC')
         True
 
-        >>> are_items_unique('ABAC')
+        >>> are_items_unique('ABACUS')
         False
     """
     seen = set()
