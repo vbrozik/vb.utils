@@ -22,8 +22,9 @@ class StoreTrueCondAction(argparse._StoreTrueAction):
         >>> foo = parser.add_argument('--foo', required=True)
         >>> _ = parser.add_argument('--bar', action=StoreTrueCondAction,
         ...                     make_not_required=[foo])
-        >>> parser.parse_args(['--bar'])
-        Namespace(bar=True, foo=None)
+        >>> args = parser.parse_args(['--bar'])
+        >>> args == argparse.Namespace(foo=None, bar=True)
+        True
 
         >>> parser = argparse.ArgumentParser()
         >>> foo = parser.add_argument('--foo', required=True)
