@@ -4,9 +4,7 @@ from __future__ import annotations
 
 import itertools
 import re
-
 from typing import Final, Hashable, Iterable, Iterator, TypeVar, cast
-
 
 _T1 = TypeVar('_T1')
 _T2 = TypeVar('_T2')
@@ -115,7 +113,7 @@ def group_items_by_keys(
 
 def iter_len(iterator: Iterable) -> int:
     """Get iterable length. Iterators are consumed.
-    
+
     Infinite iterators cause infinite loop.
 
     Examples:
@@ -146,6 +144,7 @@ def are_items_unique(items: Iterable[Hashable]) -> bool:
 
 
 IDENTIFIERS_INVALID_CHARS_RE: Final[str] = r'[^a-zA-Z0-9]'
+
 
 def unique_identifiers(
         names: Iterable[str], invalid_chars: str = IDENTIFIERS_INVALID_CHARS_RE,
