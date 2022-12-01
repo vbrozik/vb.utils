@@ -59,10 +59,10 @@ def init(verbosity: int = 0, newline_handler: bool = False) -> None:
         * allow modern {} formatter
     """
     logging.addLevelName(DEBUG2, 'DEBUG2')
-    optargs: dict[str, Any] = {}
+    opt_args: dict[str, Any] = {}
     if newline_handler:
-        optargs['handlers'] = (StreamHandler(),)
-    logging.basicConfig(format='%(levelname)s: %(message)s', **optargs)
+        opt_args['handlers'] = (StreamHandler(),)
+    logging.basicConfig(format='%(levelname)s: %(message)s', **opt_args)
     logging.getLogger().setLevel(30 - 10 * verbosity)
     if verbosity:
-        logging.info(f"verbosity: {verbosity}")
+        logging.info("verbosity: %s", verbosity)
