@@ -60,7 +60,8 @@ def init(verbosity: int = 0, newline_handler: bool = False) -> None:
     opt_args: dict[str, Any] = {}
     if newline_handler:
         opt_args['handlers'] = (StreamHandler(),)
-    logging.basicConfig(format='%(levelname)s: %(message)s', **opt_args)
-    logging.getLogger().setLevel(30 - 10 * verbosity)
+    logging.basicConfig(
+            format='%(levelname)s: %(message)s',
+            level=(30 - 10 * verbosity), **opt_args)
     if verbosity:
         logging.info("verbosity: %s", verbosity)
