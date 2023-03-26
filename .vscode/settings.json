@@ -4,7 +4,8 @@
         "cdiff",
         "levelname",
         "msecs",
-        "onfly"
+        "onfly",
+        "vconf"
     ],
     "python.testing.pytestArgs": [],
     "python.testing.unittestEnabled": false,

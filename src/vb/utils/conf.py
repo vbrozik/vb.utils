@@ -20,6 +20,8 @@ class Config:
         config: the basic configuration object
         vconf: the parsed and validated configuration object
     """
+    config: confuse.Configuration
+    vconf: confuse.AttrDict
 
     def __init__(
             self, app_name: str | None = None, mod_name: str | None = None,
@@ -51,7 +53,7 @@ class Config:
         """Validate the configuration using the template."""
         vconf = self.config.get(self.template)
         assert isinstance(vconf, confuse.AttrDict)
-        self.vconf: confuse.AttrDict = vconf
+        self.vconf = vconf
 
     def get_user_dirname(self) -> str:
         """Get user's configuration directory name."""
