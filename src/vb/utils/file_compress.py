@@ -2,19 +2,19 @@
 
 from __future__ import annotations
 
-import gzip
-import tempfile
-import shutil
 import contextlib
-import os
-import warnings
-import pathlib
 import errno
-
-from typing import Type
+import gzip
+import os
+import pathlib
+import shutil
+import tempfile
+import warnings
 from types import TracebackType
+from typing import Type
 
 from . import ppr
+
 
 COMPRESSION_SUFFIXES = {
         '.gz': 'gzip',
@@ -26,6 +26,7 @@ COMPRESSION_SUFFIXES = {
 """Mapping of compression file suffixes to their types."""
 
 
+# pylint: disable=too-many-instance-attributes
 class TemporaryDecompressedFile(contextlib.AbstractContextManager):
     """A context manager for creating a temporarily decompressed file.
 
@@ -43,7 +44,21 @@ class TemporaryDecompressedFile(contextlib.AbstractContextManager):
         * Check if decompression progress callback can be implemented
             reasonably.
     """
+    suffix: str | None
+    """The suffix of the temporary decompressed file."""
+    prefix: str | None
+    """The prefix of the temporary decompressed file."""
+    dir: str | None
+    """The directory of the temporary decompressed file."""
+    pass_unknown_compression_type: bool
+    """If `True`, the of unknown compression is passed directly."""
+    compression_type: str | None
+    """The type of compression."""
+    spinner: ppr.Spinner | None
+    """The spinner instance to show that decompression is in progress."""
+    decompressed_path: str | None
 
+    # pylint: disable=too-many-arguments    # We support similar arguments as tempfile.mkstemp().
     def __init__(
             self, compressed_path: str,
             compression_type_from_suffix: bool = True,
@@ -75,13 +90,13 @@ class TemporaryDecompressedFile(contextlib.AbstractContextManager):
         self.pass_unknown_compression_type = pass_unknown_compression_type
         self.compression_type = None
         self.spinner = spinner
+        self.decompressed_path = None
         if compression_type_from_suffix:
             self.compression_type = COMPRESSION_SUFFIXES.get(
                     pathlib.Path(compressed_path).suffix, None)
 
     def __enter__(self):
         """Enter the context manager."""
-        self.decompressed_path = None
         if (
                 self.compression_type is None
                 and self.pass_unknown_compression_type):
@@ -118,6 +133,7 @@ class TemporaryDecompressedFile(contextlib.AbstractContextManager):
                 __exc_value: BaseException | None,
                 __traceback: TracebackType | None) -> None:
         """Exit the context manager."""
+        del __exc_type, __exc_value, __traceback
         if self.decompressed_path is not None:
             try:
                 os.remove(self.decompressed_path)
