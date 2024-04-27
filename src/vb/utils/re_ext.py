@@ -3,10 +3,11 @@
 from __future__ import annotations
 
 import re
+from typing import Iterable
 
 
 def first_fullmatch(
-        patterns: list[re.Pattern[str] | str], string: str) -> re.Match[str] | None:
+        patterns: Iterable[re.Pattern[str] | str], string: str) -> re.Match[str] | None:
     """Return the first fullmatch of a string.
 
     Args:
