@@ -26,7 +26,7 @@ COMPRESSION_SUFFIXES = {
 """Mapping of compression file suffixes to their types."""
 
 
-# pylint: disable=too-many-instance-attributes
+# pylint: disable=too-many-instance-attributes  # We support similar arguments as tempfile.mkstemp.
 class TemporaryDecompressedFile(contextlib.AbstractContextManager):
     """A context manager for creating a temporarily decompressed file.
 
@@ -44,6 +44,8 @@ class TemporaryDecompressedFile(contextlib.AbstractContextManager):
         * Check if decompression progress callback can be implemented
             reasonably.
     """
+    compressed_path: str | pathlib.Path
+    """The path to the compressed file."""
     suffix: str | None
     """The suffix of the temporary decompressed file."""
     prefix: str | None
@@ -60,12 +62,12 @@ class TemporaryDecompressedFile(contextlib.AbstractContextManager):
 
     # pylint: disable=too-many-arguments    # We support similar arguments as tempfile.mkstemp().
     def __init__(
-            self, compressed_path: str,
+            self, compressed_path: str | pathlib.Path,
             compression_type_from_suffix: bool = True,
             pass_unknown_compression_type: bool = True,
             spinner: ppr.Spinner | None = None,
             suffix: str | None = None,
-            prefix: str | None = None, dir_=None, text: bool = False):
+            prefix: str | None = None, dir_=None):
         """Initialize the decompressed context manager.
 
         Args:
@@ -79,21 +81,17 @@ class TemporaryDecompressedFile(contextlib.AbstractContextManager):
             suffix: The suffix of the temporary decompressed file.
             prefix: The prefix of the temporary decompressed file.
             dir_: The directory of the temporary decompressed file.
-            text: If `True`, text mode is used.
         """
         self.compressed_path = compressed_path
         self.suffix = suffix
         self.prefix = prefix
         self.dir = dir_
-        self.text = text
-        self.mode = 't' if text else 'b'
         self.pass_unknown_compression_type = pass_unknown_compression_type
         self.compression_type = None
         self.spinner = spinner
         self.decompressed_path = None
         if compression_type_from_suffix:
-            self.compression_type = COMPRESSION_SUFFIXES.get(
-                    pathlib.Path(compressed_path).suffix, None)
+            self.compression_type = COMPRESSION_SUFFIXES.get(pathlib.Path(compressed_path).suffix)
 
     def __enter__(self):
         """Enter the context manager."""
@@ -102,14 +100,13 @@ class TemporaryDecompressedFile(contextlib.AbstractContextManager):
                 and self.pass_unknown_compression_type):
             return self.compressed_path
         decompressed_fd, self.decompressed_path = tempfile.mkstemp(
-                suffix=self.suffix, prefix=self.prefix, dir=self.dir,
-                text=self.text)
+                suffix=self.suffix, prefix=self.prefix, dir=self.dir, text=False)
         with contextlib.ExitStack() as stack:
             decompressed_file = stack.enter_context(
-                    os.fdopen(decompressed_fd, f'w{self.mode}'))
+                    os.fdopen(decompressed_fd, 'wb'))
             if self.compression_type == 'gzip':
                 onfly_decompressed_file = stack.enter_context(
-                        gzip.open(self.compressed_path, f'r{self.mode}'))
+                        gzip.open(self.compressed_path, 'rb'))
             else:
                 raise ValueError(
                         f'Unsupported compression type: '
@@ -117,10 +114,7 @@ class TemporaryDecompressedFile(contextlib.AbstractContextManager):
             if self.spinner is not None:
                 stack.enter_context(self.spinner)
             shutil.copyfileobj(onfly_decompressed_file, decompressed_file)
-            # FIXME: Pylance complains about the first argument:
-            # "TextIO" is incompatible with protocol
-            # "SupportsRead[AnyStr@copyfileobj]"
-            # Maybe use IO[str] instead of TextIO?
+            # The copied files must be opened in binary mode.
         try:
             os.close(decompressed_fd)
         except OSError as os_err:       # file descriptor is normally closed
